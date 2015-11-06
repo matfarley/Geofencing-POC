@@ -18,11 +18,15 @@ public class LocationConstants {
     public static final HashMap<String, LatLng>COMPETITOR_CINEMAS = new HashMap<String, LatLng>();
     public static final HashMap<String, LatLng>CLIENT_BILLBOARDS = new HashMap<String, LatLng>();
 
+    public static final HashMap<String, LatLng>DOG_FOOD_LOCATIONS = new HashMap<String, LatLng>();
+
+
     // initializer
     static{
         createClientCinemasMap();
         createCompetitionCinemasMap();
         createClientBillboardsMap();
+        createDogFoodMap();
     }
 
     private static void createClientCinemasMap(){
@@ -39,4 +43,18 @@ public class LocationConstants {
     private static void createClientBillboardsMap(){
         CLIENT_BILLBOARDS.put("BUS_SHELTER_44_KYBER_PASS", new LatLng(-36.864147, 174.762055));
     }
+
+    private static void createDogFoodMap(){
+        DOG_FOOD_LOCATIONS.put("KYBER_PASS", new LatLng(-36.863833, 174.761024));
+        DOG_FOOD_LOCATIONS.put("NEWTON_RD_AND_UPPER_QUEEN", new LatLng(-36.863236, 174.758563));
+        DOG_FOOD_LOCATIONS.put("NEWTON_RD_BRIDGE", new LatLng(-36.861826, 174.754164));
+        DOG_FOOD_LOCATIONS.put("NEWTON_RD_N_K_ROAD", new LatLng(-36.859721, 174.752734));
+        DOG_FOOD_LOCATIONS.put("WESTERN_PARK", new LatLng(-36.858112, 174.749813));
+        DOG_FOOD_LOCATIONS.put("FRANKLIN_RD", new LatLng(-36.853463, 174.745465));
+        DOG_FOOD_LOCATIONS.put("HOME", new LatLng(-36.842886, 174.745715));
+
+
+
+    }
+
 }

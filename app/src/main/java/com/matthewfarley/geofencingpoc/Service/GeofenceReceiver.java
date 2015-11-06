@@ -14,6 +14,9 @@ import android.util.Log;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofenceStatusCodes;
 import com.google.android.gms.location.GeofencingEvent;
+import com.matthewfarley.geofencingpoc.BusProvider;
+import com.matthewfarley.geofencingpoc.Events.GeofenceTransitionEnterEvent;
+import com.matthewfarley.geofencingpoc.Events.GeofenceTransitionExitEvent;
 import com.matthewfarley.geofencingpoc.MainActivity;
 import com.matthewfarley.geofencingpoc.R;
 
@@ -67,12 +70,14 @@ public class GeofenceReceiver extends BroadcastReceiver {
     // TODO: Handle these with Otto!
     private void handleEntryTransition(String notificationString){
         sendNotification(notificationString);
-        // Send Broadcast or Use Otto?
+        // Inject Bus to class
+        BusProvider.getInstance().post(new GeofenceTransitionEnterEvent(notificationString));
     }
 
     private void handleExitTransition(String notificationString){
         sendNotification(notificationString);
-        // Send Broadcast or Use Otto?
+        // Inject Bus to class
+        BusProvider.getInstance().post(new GeofenceTransitionExitEvent(notificationString));
     }
 
     /**

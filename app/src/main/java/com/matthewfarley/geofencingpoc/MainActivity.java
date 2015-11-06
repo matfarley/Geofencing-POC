@@ -34,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
     private PendingIntent mGeofencingPendingIntent;
 
+    // TODO: Add injection with Dagger.
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,10 +108,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 "You need to use ACCESS_FINE_LOCATION with geofences", securityException);
     }
 
-
     private void populateGeofenceList(){
-        for (Map.Entry<String, LatLng> entry : LocationConstants.CLIENT_CINEMAS.entrySet()){
-            mGeofenceList.add(new Geofence.Builder()
+
+//        for (Map.Entry<String, LatLng> entry : LocationConstants.CLIENT_CINEMAS.entrySet()){
+             for (Map.Entry<String, LatLng> entry : LocationConstants.DOG_FOOD_LOCATIONS.entrySet()){
+                mGeofenceList.add(new Geofence.Builder()
                     .setRequestId(entry.getKey())
                     .setCircularRegion(
                             entry.getValue().latitude,
@@ -164,6 +168,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         return mGeofencingPendingIntent;
     }
+
+    // TODO: Handle restoring fragments properly
 
     @Override
     protected void onStart(){
