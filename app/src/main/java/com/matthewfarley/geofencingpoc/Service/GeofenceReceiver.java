@@ -27,9 +27,9 @@ import java.util.List;
  * Created by matthewfarley on 6/11/15.
  */
 public class GeofenceReceiver extends BroadcastReceiver {
+
     String TAG = GeofenceReceiver.class.getSimpleName();
     Context context;
-
     Intent broadcastIntent = new Intent();
 
     @Override

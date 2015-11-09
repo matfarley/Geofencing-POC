@@ -2,9 +2,13 @@ package com.matthewfarley.geofencingpoc;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -18,23 +22,39 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.matthewfarley.geofencingpoc.Data.GeofenceData;
 import com.matthewfarley.geofencingpoc.Data.LocationConstants;
 import com.matthewfarley.geofencingpoc.Service.GeofenceReceiver;
-import com.matthewfarley.geofencingpoc.Service.GeofenceTransitionsIntentService;
+
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback {
 
     static final String TAG = MainActivity.class.getSimpleName();
     protected ArrayList<Geofence> mGeofenceList;
     private GoogleApiClient mGoogleApiClient;
     private PendingIntent mGeofencingPendingIntent;
-
-    // TODO: Add injection with Dagger.
+    private Fragment mContent;
+    private SupportMapFragment mMapFragment;
+    private String FRAGMENT_CONTENT_TAG = "fragment_content_tag";
+    private CameraPosition initialMapCameraPosition = new CameraPosition.Builder()
+            .target(new LatLng(-36.8643942, 174.7619292))
+            .zoom(13.0f).build();
 
 
     @Override
@@ -42,9 +62,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        if (savedInstanceState != null){
+//            mContent = getSupportFragmentManager().getFragment(savedInstanceState, FRAGMENT_CONTENT_TAG);
+//        }else {
+//            mContent = new MainActivityFragment();
+//        }
+//
+        mMapFragment = SupportMapFragment.newInstance();
+        mMapFragment.getMapAsync(this);
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+//        transaction.add(R.id.container, mContent);
+        transaction.add(R.id.container, mMapFragment);
+        transaction.commit();
+
+
         mGeofenceList = new ArrayList<>();
 
-        populateGeofenceList();
+        populateGeofenceList(LocationConstants.CLIENT_CINEMAS);
+        populateGeofenceList(LocationConstants.CLIENT_BILLBOARDS);
+
 
         buildGoogleApiClient();
 
@@ -108,23 +146,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 "You need to use ACCESS_FINE_LOCATION with geofences", securityException);
     }
 
-    private void populateGeofenceList(){
+    private void populateGeofenceList(Map<String, GeofenceData> data){
 
-//        for (Map.Entry<String, LatLng> entry : LocationConstants.CLIENT_CINEMAS.entrySet()){
-             for (Map.Entry<String, LatLng> entry : LocationConstants.DOG_FOOD_LOCATIONS.entrySet()){
+             for (Map.Entry<String, GeofenceData> entry : data.entrySet()){
                 mGeofenceList.add(new Geofence.Builder()
-                    .setRequestId(entry.getKey())
-                    .setCircularRegion(
-                            entry.getValue().latitude,
-                            entry.getValue().longitude,
-                            LocationConstants.GEOFENCE_RADIUS_IN_METERS
-                    )
-                    .setExpirationDuration(LocationConstants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-                    .build());
+                        .setRequestId(entry.getKey())
+                        .setCircularRegion(
+                                entry.getValue().getLatLng().latitude,
+                                entry.getValue().getLatLng().longitude,
+                                entry.getValue().getRadius()
+                        )
+                        .setExpirationDuration(LocationConstants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+                        .build());
         }
-
-        // TODO: add Geofences for opposition cinemas and billboards.
     }
 
     public void addGeofences(){
@@ -182,4 +217,56 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onStop();
         mGoogleApiClient.disconnect();
     }
+
+//    @Override
+//    public void onSaveInstanceState(Bundle outState) {
+//        getSupportFragmentManager().putFragment(outState, FRAGMENT_CONTENT_TAG, mContent);
+//        super.onSaveInstanceState(outState);
+//        Log.i(TAG, "onSaveInstanceState Called");
+//    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Log.i(TAG, "onDestroy Called");
+    }
+
+    // Used to visualise the Geofences.
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        addMarkers(googleMap, LocationConstants.CLIENT_CINEMAS);
+        addCircle(googleMap, LocationConstants.CLIENT_CINEMAS, Color.parseColor("#80008000"));
+
+        addMarkers(googleMap, LocationConstants.CLIENT_BILLBOARDS);
+        addCircle(googleMap, LocationConstants.CLIENT_BILLBOARDS, Color.parseColor("#800000FF"));
+
+        addMarkers(googleMap, LocationConstants.COMPETITOR_CINEMAS);
+        addCircle(googleMap, LocationConstants.COMPETITOR_CINEMAS, Color.parseColor("#80FF0000"));
+
+        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(initialMapCameraPosition));
+    }
+
+    private void addMarkers(GoogleMap googleMap, Map<String, GeofenceData>data){
+
+        for (Map.Entry<String, GeofenceData> entry : data.entrySet()) {
+            Marker marker = googleMap.addMarker(new MarkerOptions()
+                    .position(entry.getValue().getLatLng())
+                    .title(entry.getKey()));
+            marker.showInfoWindow();
+        }
+    }
+
+    private void addCircle(GoogleMap googleMap, Map<String, GeofenceData>data, int fillColor){
+
+        for (Map.Entry<String, GeofenceData> entry : data.entrySet()) {
+            googleMap.addCircle(new CircleOptions()
+                    .center(entry.getValue().getLatLng())
+                    .radius(entry.getValue().getRadius())
+                    .fillColor(fillColor)
+                    .strokeColor(Color.TRANSPARENT)
+                    .strokeWidth(2));
+        }
+    }
+
 }
