@@ -250,10 +250,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void addMarkers(GoogleMap googleMap, Map<String, GeofenceData>data){
 
         for (Map.Entry<String, GeofenceData> entry : data.entrySet()) {
-            Marker marker = googleMap.addMarker(new MarkerOptions()
+                googleMap.addMarker(new MarkerOptions()
                     .position(entry.getValue().getLatLng())
                     .title(entry.getKey()));
-            marker.showInfoWindow();
         }
     }
 
